@@ -207,37 +207,3 @@ const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Server running at http://localhost:${PORT}`);
 });
-
-//login lokal
-app.post('/login-local', async (req, res) => {
-    const { username, password } = req.body;
-
-    try {
-        // Cari user di database
-        const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-
-        if (result.rows.length === 0) {
-            return res.status(401).json({ error: 'Invalid username or password' });
-        }
-
-        const user = result.rows[0];
-
-        // Bandingin password yang diinput user sama yang di database
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordMatch) {
-            return res.status(401).json({ error: 'Invalid username or password' });
-        }
-
-        // Kalau valid, simpen session user
-        req.session.user = {
-            id: user.id,
-            username: user.username,
-        };
-
-        res.status(200).json({ message: 'Login successful!', token: 'dummy-token' }); // Bisa ganti token-nya
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Internal server error'});
-}
-});
